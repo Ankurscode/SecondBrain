@@ -2,9 +2,12 @@ import express from "express"
 import { userValidation } from "./validation.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
-import { contentModel, userModel } from "./db.js";
+import { contentModel, linkModel, userModel } from "./db.js";
 import { JWT_Password } from "./config.js";
 import { userMiddleware } from "./middleware.js";
+import { random } from "./utils.js";
+import { hash } from "zod";
+
 const app=express();
 
 
@@ -49,7 +52,7 @@ app.post('/api/v1/signIn',async(req,res)=>{
     const validation=userValidation.parse(req.body);
     if(!validation.username||!validation.password){
         return res.status(411).json({
-            msg:"Invalid input"
+            msg:"Worng input"
         })
     }
     const users=await userModel.findOne({username:validation.username})
@@ -67,35 +70,98 @@ app.post('/api/v1/signIn',async(req,res)=>{
 })
 
 app.post('/api/v1/content',userMiddleware,async(req,res)=>{
-    const type=req.body.type;
-    const link=req.body.link;
-    await contentModel.create({
-        link,
-        type,
-        //@ts-ignore
-        userId:req.userId,
-        tags:[]
-    })
-    return res.json({
-        meg:"Content added"
-    })
+   const types=req.body.type;
+   const link=req.body.link;
+   await contentModel.create({
+    link:link,
+    type:types,
+    //@ts-ignore
+    userId:req.userId,
+    tags:[]
+   })
+   res.json({
+    msg:"Content added "
+   })
 
 })
 
-app.get('/api/v1/content',async(req,res)=>{
+app.get('/api/v1/content',userMiddleware,async(req,res)=>{
+    const userId=req.userId;
+    const constent=await contentModel.find({
+        userId:userId,
+    }).populate("userId","username")
+
+    res.json({
+        constent
+    })
 
 })
 
 app.delete('/api/v1/content',async(req,res)=>{
+    const content=req.body.contentId;
+    const userId=req.userId;
+    await contentModel.deleteMany({
+        content:content,
+        userId:userId
+    })
+    res.status(200).json({
+        msg:"content deleted"
+    })
+})
+
+app.post('/api/v1/brain/share',userMiddleware,async(req,res)=>{
+    const share=req.body.share;
+    if(share){
+        const existingLink=await linkModel.findOne({
+            userId:req.userId
+        })
+        if(existingLink){
+            res.json({
+                hash:existingLink.hash
+            })
+            return
+        }
+
+       await linkModel.create({
+            userId:req.userId,
+            hash:random(10)
+        })
+        res.json(hash)
+    }else{
+        await linkModel.deleteOne({
+            userId:req.userId
+        })
+    }
+
+    res.json({
+        
+        msg:"updated share link"
+    })
 
 })
 
-app.post('/api/v1/brain/share',(req,res)=>{
+app.get('/api/v1/brain/:shareLink',async(req,res)=>{
+    const hash=req.params.shareLink;
+  const link=await linkModel.findOne({
+        hash:hash
+    });
+    if(!link){
+        res.status(411).json({
+            msg:"Worng link or inputs"
+        })
+        return;
+    }
+    const content=await contentModel.findOne({
+        userId:link.userId
+    })
+    const user=await userModel.findOne({
+        userId:link.userId
+    })
 
-})
-
-app.get('/api/v1/brain/:shareLink',(req,res)=>{
-
+    res.json({
+        username:user?.username,
+        content:content
+    })
 })
 
 app.listen(port);

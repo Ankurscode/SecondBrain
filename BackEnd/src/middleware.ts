@@ -1,17 +1,18 @@
 import { NextFunction,Request,Response } from "express";
-import jwt from "jsonwebtoken"
+import jwt, { JwtPayload }  from "jsonwebtoken";
 import { JWT_Password } from "./config.js";
 
-export const userMiddleware=(req:Request,res:Response,next:NextFunction)=>{
-    const header=req.headers['authorization'];
-    const decode=jwt.verify(header as string,JWT_Password)
+export function userMiddleware(req:Request,res:Response,next:NextFunction){
+    const header =req.headers['authorization'];
+    const decode=jwt.verify(header as string,JWT_Password);
     if(decode){
-        //@ts-ignore
-        req.userId=decode.id;
+        
+        req.userId=(decode as JwtPayload).id;
         next()
     }else{
-        res.json({
+        res.status(411).json({
             msg:"You are not logedIn"
         })
     }
+
 }
