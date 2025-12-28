@@ -1,11 +1,15 @@
 import { Request,Response } from "express"
-import { userValidation } from "../validation"
+import { logInValidation, userValidation } from "../validation"
 import { userModel } from "../models/userModel";
 import bcrypt from "bcrypt"
 import jwt  from "jsonwebtoken";
+import dotenv from "dotenv"
+
+
 export const singUp=async(req:Request,res:Response)=>{
     try{
         const parse= userValidation.safeParse(req.body);
+        console.log(parse)
 
         if(!parse.success){
             res.status(400).json({
@@ -14,6 +18,7 @@ export const singUp=async(req:Request,res:Response)=>{
             })
             return
         }
+        
 
         const {username,userEmail,password}=parse.data
         
@@ -46,21 +51,54 @@ export const singUp=async(req:Request,res:Response)=>{
     }
 }
 
-const singIn=async(req:Request,res:Response)=>{
+export const singIn=async(req:Request,res:Response)=>{
     try{
-        const parsed=userValidation.safeParse(req.body);
+        const parsed=logInValidation.safeParse(req.body);
         if(!parsed.success){
             return res.status(400).json({
                 msg:"Invalid input"
             })
         }
         const {userEmail,password}=parsed.data
+        
+        const user1=await userModel.findOne({
+            userEmail:userEmail
+        })
 
 
+       if(!user1?.userEmail||!user1?.password){
+        res.status(400).json({
+            msg:"User not found or password is mistake"
+        })
+        return
+       }
 
+       const isMatch=await bcrypt.compare(password,user1?.password)
+       if(!isMatch){
+        res.status(400).json({
+            msg:"Invalide credentials"
+        })
+        return
+       }
+       if(!process.env.SECRET_KEY){
+        throw new Error("Value not aviable")
+        
+       }
 
+       const token=jwt.sign({userID:user1?._id},process.env.SECRET_KEY)
 
+       res.status(200).json({
+        message:"User successfully logged in",
+        token,
+        userID:user1._id
+       })
+       
+       return
     }catch(err){
-
+          console.log("Something went worng",err)
+        res.status(500).json({
+            msg:"Error have occured while fetching the data"
+        })
+        return
     }
 }

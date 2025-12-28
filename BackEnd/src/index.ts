@@ -1,32 +1,26 @@
-import express from "express"
-import { userValidation } from "./validation";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt"
-import { JWT_Password } from "./config";
-import { userMiddleware } from "./middleware";
-import { userModel } from "./models/userModel";
-import { contentModel } from "./models/contentModel";
-import { LinkModel } from "./models/linkModel";
-import { random } from "./utils";
-import { hash } from "zod";
+import express, { Router } from "express"
+
 import dotenv from "dotenv"
 import dbConnect from "./config/db";
 import cors  from "cors"
+import cookieParser from "cookie-parser"
+import { routes } from "./routes/PagesRoutes";
+
 
 
 const app=express();
+app.use(express.json())
+app.use(express.urlencoded({extended:true}))
 app.use(cors())
+app.use(cookieParser())
 dotenv.config()
-
-
-const port=3000;
-
-         
-
-
-
-app.use(express.json());
 dbConnect()
+
+app.use("/api/v1",routes)
+app.listen(process.env.PORT,()=>{
+    msg:"Server is runnning and providing services"
+}
+)
 // enum ContentType{
 //         Youtube="youtube",
 //         Twitter="twitter"   
