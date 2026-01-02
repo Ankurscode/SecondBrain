@@ -8,28 +8,55 @@ export interface AuthRequest extends Request{
 }
 
 export const isAuthenticated=(req:AuthRequest,res:Response,next:NextFunction)=>{
+    // try{
+    // //     const token = typeof req.headers.token === "string" ? req.headers.token : undefined;
+
+    //     console.log(token)
+    //     if(!token){
+    //         res.status(400).json({
+    //             msg:"Bad Token request"
+    //         })
+    //         return
+    //     }
+    //     if(!process.env.SECRET_KEY){
+    //         res.status(500).json({
+    //             msg:"server internal problem"
+    //         })
+    //         return
+    //     }
+    //     const decode=jwt.verify(token,process.env.SECRET_KEY)as unknown as{userID:Types.ObjectId};
+    //     req.userID=decode.userID;
+    //     next()
+    // }catch(e){
+    //     res.status(400).json({
+    //         msg:`Invalid or expaled token${e}`
+    //     })
+    //     return
+    // }
+
     try{
-        const token= req.headers.token==="string"? req.headers.token:undefined
+        const token=req.headers.authorization
+        console.log(token)
+        if(!process.env.SECRET_KEY){
+            res.status(400).json({
+                msg:"Token key is not found"
+            })
+            return
+        }
         if(!token){
             res.status(400).json({
-                msg:"Bad Token request"
+                msg:"Token not found"
             })
             return
         }
-        if(!process.env.SECRET_KEY){
-            res.status(500).json({
-                msg:"server internal problem"
-            })
-            return
-        }
-        const decode=jwt.verify(token,process.env.SECRET_KEY)as unknown as{userID:Types.ObjectId};
-        req.userID=decode.userID;
+       const decode=jwt.verify(token,process.env.SECRET_KEY)as unknown as{userID:Types.ObjectId};
+        req.userID=decode.userID
         next()
     }catch(e){
-        res.status(400).json({
-            msg:`Invalid or expaled token${e}`
+        res.status(500).json({
+            msg:"This error is occuring in server"
         })
-        return
+        console.log("Error:",e)
     }
 
 }

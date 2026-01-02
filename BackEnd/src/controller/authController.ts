@@ -60,6 +60,7 @@ export const singIn=async(req:Request,res:Response)=>{
             })
         }
         const {userEmail,password}=parsed.data
+        console.log(req.body)
         
         const user1=await userModel.findOne({
             userEmail:userEmail
