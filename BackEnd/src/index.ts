@@ -10,6 +10,7 @@ import "./config/transporter"
 import "dotenv/config";
 
 
+dotenv.config()
 
 
 const app=express();
@@ -17,6 +18,14 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cors())
 app.use(cookieParser())
+
+
+console.log("ENV CHECK:", {
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  email: process.env.FIREBASE_CLIENT_EMAIL,
+  hasKey: !!process.env.FIREBASE_PRIVATE_KEY,
+});
+
 
 dbConnect()
 

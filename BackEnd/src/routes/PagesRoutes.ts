@@ -5,6 +5,7 @@ import { resetPassword } from "../controller/resetPassword";
 import { isAuthenticated } from "../middleware/authMiddleware";
 import { content, deleteContent, newContents, shareContent } from "../controller/crudContainer";
 import { share,shrelink } from "../controller/shareContent";
+import { googleAuth } from "../controller/auth.controller";
 
 export const routes=Router();
 
@@ -17,4 +18,5 @@ routes.get("/content",isAuthenticated,content)
 routes.delete("/delete/:contentId",isAuthenticated,deleteContent)
 routes.get("/share/:userId",isAuthenticated,shareContent)
 routes.post("/share",isAuthenticated,share)
+routes.post("/google",googleAuth)
 routes.get("/:shareLink",isAuthenticated,shrelink)
