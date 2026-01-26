@@ -4,18 +4,18 @@ import { userModel } from "../models/userModel";
 import { contentModel } from "../models/contentModel";
 export const newContents=async(req:AuthRequest,res:Response)=>{
     try{
-    const {link,constentType,title,tag} = req.body;
+    const {link,contentType,title,tag} = req.body;
     const userid = req.userID;
 
     //checking whether user given all the field or not
-    if (!link || !constentType || !title || !userid) {
+    if (!link || !contentType || !title || !userid) {
       res.status(400).json({ message: "All fields are required" });
       return;
     }
 
     const contentCreated = new contentModel({
       link:link,
-      constentType:constentType,
+      contentType:contentType,
       title:title,
       tag:tag,
       userId:userid
@@ -35,64 +35,41 @@ export const newContents=async(req:AuthRequest,res:Response)=>{
     }
 }
 
-export const content=async(req:AuthRequest,res:Response)=>{
-    try{
-        const userID=req.userID
-        console.log(userID)
-    if(!userID){
-        res.status(400).json({
-            msg:"UserId is need "
-        })
-        return
+export const content = async (req: AuthRequest, res: Response) => {
+  try {
+    const userID = req.userID
+    if (!userID) {
+      return res.status(400).json({ msg: "UserId is needed" })
     }
-    const Usercontents=await contentModel.find({userId:userID})
-    
-    res.status(200).json({
-        msg:"User contents",
-        data:Usercontents,
-    })
-    
-    }catch(e){
-        console.log("Error occured in serverSide",e)
-        res.status(500).json({
-            msg:"Server is not working"
-        })
-        return
-    }
-    
+
+    const userContents = await contentModel.find({ userId: userID })
+    res.status(200).json(userContents)
+  } catch (e) {
+    console.log("Error occurred in serverSide", e)
+    res.status(500).json({ msg: "Server is not working" })
+  }
 }
 
-export const deleteContent=async(req:AuthRequest,res:Response)=>{
-    try{
-        const userId=req.userID;
-    const contentId=req.params.contentId;
-    
-    if(!userId||!contentId){
-        res.status(400).json({
-            msg:"user not found"
-        })
-    }
-    const userDel=await contentModel.findOne({userId:userId,_id:contentId})
-    
-    if(!userDel){
-        res.status(400).json({
-            msg:"Content not found or unothorized"
-        })
-        return
-    }
-    await contentModel.findByIdAndDelete(userDel)
-    res.status(200).json({
-        msg:"Content Deleted"
-    })
-    return
+export const deleteContent = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userID
+    const contentId = req.params.contentId
 
-    }catch(e){  
-        console.log("Error occured",e)
-        res.status(500).json({
-            msg:"Server error"
-        })
-
+    if (!userId || !contentId) {
+      return res.status(400).json({ msg: "user not found" })
     }
+
+    const content = await contentModel.findOne({ userId, _id: contentId })
+    if (!content) {
+      return res.status(400).json({ msg: "Content not found or unauthorized" })
+    }
+
+    await contentModel.findByIdAndDelete(contentId)
+    res.status(200).json({ msg: "Content Deleted" })
+  } catch (e) {
+    console.log("Error occurred", e)
+    res.status(500).json({ msg: "Server error" })
+  }
 }
 
 export const shareContent = async(req: AuthRequest, res: Response)=>{

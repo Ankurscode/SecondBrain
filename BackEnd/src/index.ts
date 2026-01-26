@@ -16,7 +16,11 @@ dotenv.config()
 const app=express();
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
-app.use(cors())
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true
+}));
 app.use(cookieParser())
 
 
@@ -31,9 +35,12 @@ dbConnect()
 
 app.use("/api/v1",routes)
 app.listen(process.env.PORT,()=>{
+  console.log("Running the surver",process.env.PORT)
     msg:"Server is runnning and providing services"
 }
+
 )
+
 // enum ContentType{
 //         Youtube="youtube",
 //         Twitter="twitter"   
