@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import admin from "./config/firebase-admin";
 dotenv.config();
 import dbConnect from "./config/db";
 import { routes } from "./routes/PagesRoutes";
@@ -10,6 +11,31 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+console.log('1. Starting server...');
+dotenv.config();
+console.log('2. Dotenv loaded');
+dbConnect();
+console.log("DB connected");
+console.log('4. Initializing Firebase...');
+const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT;
+if (!serviceAccountStr) {
+    console.error('FIREBASE_SERVICE_ACCOUNT missing');
+}
+else {
+    try {
+        const serviceAccount = JSON.parse(serviceAccountStr);
+        console.log('Firebase JSON parsed OK');
+        if (admin.apps.length === 0) {
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+            });
+            console.log('Firebase initialized');
+        }
+    }
+    catch (err) {
+        console.error('Firebase init failed:', err.message);
+    }
+}
 app.use(cors({
     origin: [
         "https://brainly-fe-delta.vercel.app",
@@ -36,4 +62,5 @@ if (process.env.NODE_ENV !== "production") {
         console.log(`Local server running on http://localhost:${PORT}`);
     });
 }
+console.log('5. Server setup complete – ready for requests');
 export default app;
