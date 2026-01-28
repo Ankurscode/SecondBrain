@@ -12,8 +12,5 @@
       "dest": "dist/index.js"
     }
   ],
-  "framework": null,
-  "node": {
-    "module": "commonjs"   
-  }
+  "framework": null
 }
