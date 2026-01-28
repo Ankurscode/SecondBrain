@@ -1,16 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.forgotPassword = void 0;
-const validation_1 = require("../validation");
-const bcrypt_1 = __importDefault(require("bcrypt"));
-const otpModel_1 = require("../models/otpModel");
-const transporter_1 = require("../config/transporter");
-const forgotPassword = async (req, res) => {
+import { forgotValidation } from "../validation";
+import bcrypt from "bcrypt";
+import { optModel } from "../models/otpModel";
+import { createTransport } from "../config/transporter";
+export const forgotPassword = async (req, res) => {
     try {
-        const parser = validation_1.forgotValidation.safeParse(req.body);
+        const parser = forgotValidation.safeParse(req.body);
         if (!parser.success) {
             res.status(401).json({
                 msg: "Their is error in Parsing"
@@ -19,15 +13,15 @@ const forgotPassword = async (req, res) => {
         }
         const { userEmail } = parser.data;
         const otp = generateOtp();
-        const otphash = await bcrypt_1.default.hash(otp, 10);
+        const otphash = await bcrypt.hash(otp, 10);
         //deleting the old opts from this email
-        await otpModel_1.optModel.deleteMany({ userEmail });
-        await otpModel_1.optModel.create({
+        await optModel.deleteMany({ userEmail });
+        await optModel.create({
             userEmail: userEmail,
             otphash: otphash,
             expiresAt: new Date(Date.now() + 10 * 60 * 1000),
         });
-        const transporter = (0, transporter_1.createTransport)();
+        const transporter = createTransport();
         await transporter.sendMail({
             from: `"nepalBrain"<${process.env.SMTP_EMAIL}>`,
             to: userEmail,
@@ -51,7 +45,6 @@ const forgotPassword = async (req, res) => {
         });
     }
 };
-exports.forgotPassword = forgotPassword;
 const generateOtp = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };

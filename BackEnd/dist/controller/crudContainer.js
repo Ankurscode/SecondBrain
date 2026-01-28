@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.shareContent = exports.deleteContent = exports.content = exports.newContents = void 0;
-const contentModel_1 = require("../models/contentModel");
-const newContents = async (req, res) => {
+import { contentModel } from "../models/contentModel";
+export const newContents = async (req, res) => {
     try {
         const { link, contentType, title, tag } = req.body;
         const userid = req.userID;
@@ -11,7 +8,7 @@ const newContents = async (req, res) => {
             res.status(400).json({ message: "All fields are required" });
             return;
         }
-        const contentCreated = new contentModel_1.contentModel({
+        const contentCreated = new contentModel({
             link: link,
             contentType: contentType,
             title: title,
@@ -32,14 +29,13 @@ const newContents = async (req, res) => {
         });
     }
 };
-exports.newContents = newContents;
-const content = async (req, res) => {
+export const content = async (req, res) => {
     try {
         const userID = req.userID;
         if (!userID) {
             return res.status(400).json({ msg: "UserId is needed" });
         }
-        const userContents = await contentModel_1.contentModel.find({ userId: userID });
+        const userContents = await contentModel.find({ userId: userID });
         res.status(200).json(userContents);
     }
     catch (e) {
@@ -47,19 +43,18 @@ const content = async (req, res) => {
         res.status(500).json({ msg: "Server is not working" });
     }
 };
-exports.content = content;
-const deleteContent = async (req, res) => {
+export const deleteContent = async (req, res) => {
     try {
         const userId = req.userID;
         const contentId = req.params.contentId;
         if (!userId || !contentId) {
             return res.status(400).json({ msg: "user not found" });
         }
-        const content = await contentModel_1.contentModel.findOne({ userId, _id: contentId });
+        const content = await contentModel.findOne({ userId, _id: contentId });
         if (!content) {
             return res.status(400).json({ msg: "Content not found or unauthorized" });
         }
-        await contentModel_1.contentModel.findByIdAndDelete(contentId);
+        await contentModel.findByIdAndDelete(contentId);
         res.status(200).json({ msg: "Content Deleted" });
     }
     catch (e) {
@@ -67,15 +62,13 @@ const deleteContent = async (req, res) => {
         res.status(500).json({ msg: "Server error" });
     }
 };
-exports.deleteContent = deleteContent;
-const shareContent = async (req, res) => {
+export const shareContent = async (req, res) => {
     const { userId } = req.params;
     try {
-        const documents = await contentModel_1.contentModel.find({ userId: userId });
+        const documents = await contentModel.find({ userId: userId });
         res.status(200).json({ data: documents });
     }
     catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
 };
-exports.shareContent = shareContent;

@@ -1,11 +1,5 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.isAuthenticated = void 0;
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const isAuthenticated = (req, res, next) => {
+import jwt from "jsonwebtoken";
+export const isAuthenticated = (req, res, next) => {
     // try{
     // //     const token = typeof req.headers.token === "string" ? req.headers.token : undefined;
     //     console.log(token)
@@ -44,7 +38,7 @@ const isAuthenticated = (req, res, next) => {
             });
             return;
         }
-        const decode = jsonwebtoken_1.default.verify(token, process.env.SECRET_KEY);
+        const decode = jwt.verify(token, process.env.SECRET_KEY);
         req.userID = decode.userID;
         next();
     }
@@ -55,4 +49,3 @@ const isAuthenticated = (req, res, next) => {
         console.log("Error:", e);
     }
 };
-exports.isAuthenticated = isAuthenticated;

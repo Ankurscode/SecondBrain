@@ -1,16 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = void 0;
-const validation_1 = require("../validation");
-const otpModel_1 = require("../models/otpModel");
-const bcrypt_1 = __importDefault(require("bcrypt"));
-const userModel_1 = require("../models/userModel");
-const resetPassword = async (req, res) => {
+import { resetPasswordValidation } from "../validation";
+import { optModel } from "../models/otpModel";
+import bcrypt from "bcrypt";
+import { userModel } from "../models/userModel";
+export const resetPassword = async (req, res) => {
     try {
-        const resetParse = validation_1.resetPasswordValidation.safeParse(req.body);
+        const resetParse = resetPasswordValidation.safeParse(req.body);
         console.log("Body:", resetParse);
         if (!resetParse.success) {
             res.status(400).json({
@@ -19,7 +13,7 @@ const resetPassword = async (req, res) => {
             return;
         }
         const { userEmail, userOtp, newPassword } = resetParse.data;
-        const recordOtp = await otpModel_1.optModel.findOne({ userEmail });
+        const recordOtp = await optModel.findOne({ userEmail });
         if (!recordOtp) {
             res.status(400).json({
                 msg: "The otp has been experied or not founder"
@@ -36,7 +30,7 @@ const resetPassword = async (req, res) => {
                 msg: "Too many attempt"
             });
         }
-        const isOtpValid = await bcrypt_1.default.compare(userOtp, recordOtp.otphash);
+        const isOtpValid = await bcrypt.compare(userOtp, recordOtp.otphash);
         if (!isOtpValid) {
             recordOtp.attempts += 1;
             await recordOtp.save();
@@ -44,8 +38,8 @@ const resetPassword = async (req, res) => {
                 msg: "Invalid otp"
             });
         }
-        const hashedPassword = await bcrypt_1.default.hash(newPassword, 10);
-        await userModel_1.userModel.updateOne({ userEmail }, { password: hashedPassword });
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await userModel.updateOne({ userEmail }, { password: hashedPassword });
         recordOtp.used = true;
         await recordOtp.save();
         return res.status(200).json({
@@ -59,4 +53,3 @@ const resetPassword = async (req, res) => {
         });
     }
 };
-exports.resetPassword = resetPassword;

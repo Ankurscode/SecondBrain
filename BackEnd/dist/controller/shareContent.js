@@ -1,17 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.shrelink = exports.share = void 0;
-const linkModel_1 = require("../models/linkModel");
-const zod_1 = require("zod");
-const utils_1 = require("../utils");
-const contentModel_1 = require("../models/contentModel");
-const userModel_1 = require("../models/userModel");
-const share = async (req, res) => {
+import { LinkModel } from "../models/linkModel";
+import { hash } from "zod";
+import { random } from "../utils";
+import { contentModel } from "../models/contentModel";
+import { userModel } from "../models/userModel";
+export const share = async (req, res) => {
     try {
         const userID = req.userID;
         const share = req.body.share;
         if (share) {
-            const existingLink = await linkModel_1.LinkModel.findOne({
+            const existingLink = await LinkModel.findOne({
                 userId: userID
             });
             if (existingLink) {
@@ -20,15 +17,15 @@ const share = async (req, res) => {
                 });
                 return;
             }
-            await linkModel_1.LinkModel.create({
+            await LinkModel.create({
                 userId: userID,
-                hash: (0, utils_1.random)(10)
+                hash: random(10)
             });
-            console.log(zod_1.hash);
-            res.json("/share/" + zod_1.hash);
+            console.log(hash);
+            res.json("/share/" + hash);
         }
         else {
-            await linkModel_1.LinkModel.deleteOne({
+            await LinkModel.deleteOne({
                 userId: userID
             });
             res.json({
@@ -43,12 +40,11 @@ const share = async (req, res) => {
         });
     }
 };
-exports.share = share;
-const shrelink = async (req, res) => {
+export const shrelink = async (req, res) => {
     try {
         const userID = req.userID;
         const hash = req.params.shareLink;
-        const link = await linkModel_1.LinkModel.findOne({
+        const link = await LinkModel.findOne({
             hash: hash
         });
         if (!link) {
@@ -57,10 +53,10 @@ const shrelink = async (req, res) => {
             });
             return;
         }
-        const content = await contentModel_1.contentModel.find({
+        const content = await contentModel.find({
             userId: userID
         });
-        const user = await userModel_1.userModel.find({
+        const user = await userModel.find({
             userId: userID
         });
         res.status(200).json({
@@ -75,4 +71,3 @@ const shrelink = async (req, res) => {
         });
     }
 };
-exports.shrelink = shrelink;
